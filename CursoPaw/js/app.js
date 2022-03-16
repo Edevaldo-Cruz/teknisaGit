@@ -61,6 +61,60 @@ function getSelectedLanguages() {
   );
 }
 
-function updateVisibleCards(containerEl, search, operation, languages) {
+function updateVisibleCards(containerEl, search, operation, selectedLanguages) {
   let visibleCards = 0;
+  Array.from(containerEl.children).forEach((cardEl) => {
+    let [titleEl] = cardEl.getElementsByClassName("card-title");
+    let cardLanguages = Array.from(
+      cardEl.getElementsByClassName("iconLanguage")
+    ).map((image) => image.name);
+    if (titleEl) {
+      let isMatchName = isMatchByName(titleEl.textContent, search);
+      if (!isMatchName && operation == "AND") {
+        hideCard(cardEl);
+      } else if (isMatchName && operation == "OR") {
+        showCard(cardEl);
+        visibleCards++;
+      } else if (isMatchName && operation == "AND") {
+        let isMatchLanguage = isMatchByLanguage(
+          cardLanguages,
+          selectedLanguages
+        );
+        if (isMatchLanguage) {
+          showCard(cardEl);
+          visibleCards++;
+        } else {
+          hideCard(cardEl);
+        }
+      } else if (!isMatchName && operation == "OR") {
+        let isMatchLanguage = isMatchByLanguage(
+          cardLanguages,
+          selectedLanguages
+        );
+        if (isMatchLanguage) {
+          showCard(cardEl);
+          visibleCards++;
+        } else {
+          hideCard(cardEl);
+        }
+      }
+    }
+  });
+  return visibleCards;
+}
+
+function isMatchByName(textCard, textInput) {
+  return textCard.toLowerCase().includes(textInput.toLowerCase());
+}
+
+function isMatchByLanguage(cardLanguages, selectedLanguages) {
+  return cardLanguages.some((cardLang) => selectedLanguages.includes(cardLang));
+}
+
+function hideCard(card) {
+  card.style.display = "none";
+}
+
+function showCard(card) {
+  card.style.display = "flex";
 }
