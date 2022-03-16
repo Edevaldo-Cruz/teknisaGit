@@ -28,8 +28,9 @@ function filter() {
         operation,
         languages
       );
+      updateResults(visibleCards);
     }
-  }, 10000);
+  }, 800);
 }
 
 function getFilterProperties() {
@@ -117,4 +118,134 @@ function hideCard(card) {
 
 function showCard(card) {
   card.style.display = "flex";
+}
+
+const modalTemplate = `
+    <div class="modal">
+      <button class="fechar">x</button>
+      <div class="profilePictureModal">
+          <img class="image" name ="image-profile" src="__DEV_IMAGE__" alt="desenvolvedor" />
+      </div>
+      <div class="profileDescriptionModal">
+          <div style="display: flex; flex-direction: column">
+              <h2 class="card-title" name="devname">__DEV_NAME__</h2>
+              <span name="age">__DEV_AGE__</span>
+              <span name="description">__DEV_DESCRIPTION__</span>
+              <span name="description">__DEV_DESCRIPTION_ABILITY__</span>
+              <h3>Contato</h3>
+              <span name="mail">Email: <a href="#">__DEV_MAIL__</a></span>
+              <span name="git">Github: <a href="#">__DEV_GIT__</a></span>
+              <span name="phone">Telefone:__DEV_PHONE__</span>
+          </div>
+          <div class="languages">
+          <h3>Linguagens</h3>
+              __DEV_LANGUAGES__
+          </div>
+      </div>
+    </div>
+`;
+
+Array.from(document.querySelectorAll(".card")).forEach((card) => {
+  card.addEventListener("click", () =>
+    iniciaModal("modal-profile", event.currentTarget.id)
+  );
+});
+
+function iniciaModal(modalId, cardId) {
+  fillModal(getUserInfo(cardId));
+  const modal = document.getElementById(modalId);
+  if (modal) {
+    modal.classList.add("mostrar");
+    modal.addEventListener("click", (e) => {
+      if (e.target.id == modalId || e.target.className == "fechar") {
+        modal.classList.remove("mostrar");
+      }
+    });
+  }
+}
+
+function getUserInfo(id) {
+  let cardUser = document.getElementById(id);
+  let userData = {};
+  if (cardUser) {
+    userData = [
+      "age",
+      "mail",
+      "phone",
+      "github",
+      "username",
+      "description",
+      "descriptionAbility",
+    ].reduce((acc, name) => {
+      // slide 67
+      userData.languages = Array.from(
+        cardUser.querySelectorAll(".languages > .iconLanguage")
+      ).reduce(function (acc, el) {
+        let nameLanguage = el.name;
+        acc[nameLanguage] = `${el.getAttribute("experience")}`;
+        return acc;
+      }, {});
+      userData.picture = cardUser
+        .querySelector(".profilePicture > img")
+        .getAttribute("src");
+      acc[name] = getTextContentByName(cardUser, name);
+      return acc;
+    }, {});
+  }
+  //slide 68
+  return userData;
+}
+// slide 66
+function getTextContentByName(el, name, defaultValue = "") {
+  let element = el.querySelector(`*[name=${name}]`);
+  return element ? element.textContent : defaultValue;
+}
+
+// slide 69
+function fillModal(userInfo) {
+  let descriptionLanguages = getDescriptionLanguage();
+
+  //slide 71
+  languages = Object.keys(userInfo.languages)
+    .map((langCode) => {
+      return `
+          <div class="languageDescription">
+              <div class="language-name">
+                  <img name="${langCode}" class="iconLanguage" src="images/${langCode}.png" alt="language" />
+                  <span>${descriptionLanguages[langCode]}</span>
+              </div>
+              <div class="modal-experience">
+                  <span>${userInfo.languages[langCode]} Anos</span>
+              </div>
+          </div>
+      `;
+    })
+    .join("\n");
+
+  //slide 72
+  modal = modalTemplate;
+  modal = modal.replaceAll("_DEV_IMAGE_", userInfo.picture);
+  modal = modal.replaceAll("_DEV_NAME_", userInfo.username);
+  modal = modal.replaceAll("_DEV_AGE_", userInfo.age);
+  modal = modal.replaceAll("_DEV_DESCRIPTION_", userInfo.description);
+  modal = modal.replaceAll(
+    "_DEV_DESCRIPTION_ABILITY_",
+    userInfo.descriptionAbility
+  );
+  modal = modal.replaceAll("_DEV_MAIL_", userInfo.mail);
+  modal = modal.replaceAll("_DEV_PHONE_", userInfo.phone);
+  modal = modal.replaceAll("_DEV_GIT_", userInfo.github);
+  modal = modal.replaceAll("_DEV_LANGUAGES_", languages);
+  document.querySelector("#modal-profile").innerHTML = modal;
+}
+
+//slide 70
+function getDescriptionLanguage() {
+  let description = {
+    js: "JavaScript",
+    php: "PHP",
+    java: "Java",
+    python: "Python",
+  };
+  return description;
 }
